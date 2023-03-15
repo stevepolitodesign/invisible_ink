@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require "securerandom"
 
 command = ARGV.shift
 
@@ -16,7 +17,13 @@ when "read"
     exit 1
   end
 when "setup"
-  exit 0
+  if File.exist?("invisible_ink.key")
+    puts "ERROR: invisible_ink.key already exists"
+    exit 1
+  else
+    key = SecureRandom.hex(16)
+    File.write("invisible_ink.key", key)
+  end
 else
   puts "ERROR: Unknown command #{command}"
   exit 1

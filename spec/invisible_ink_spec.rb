@@ -6,6 +6,10 @@ RSpec.describe InvisibleInk do
   end
 
   describe "invisible_ink executable" do
+    after do
+      File.delete("invisible_ink.key") if File.exist?("invisible_ink.key")
+    end
+
     it "requires a command" do
       system_output = invoke_executable(nil)
 
@@ -62,6 +66,35 @@ RSpec.describe InvisibleInk do
 
         expect(system_output).to be_truthy
         expect($?).to be_success
+      end
+
+      it "creates a key with 32 characters" do
+        expect(File.exist?("invisible_ink.key")).to be false
+
+        invoke_executable("setup")
+
+        key = File.open("invisible_ink.key")
+        expect(key.size).to eq 32
+      end
+
+      context "when the key exists" do
+        it "does not override the key" do
+          File.write("invisible_ink.key", "original")
+
+          invoke_executable("setup")
+
+          key = File.read("invisible_ink.key")
+          expect(key).to eq "original"
+        end
+
+        it "exits with a 1 status code" do
+          File.write("invisible_ink.key", "original")
+
+          system_output = invoke_executable("setup")
+
+          expect(system_output).to be_falsey
+          expect($?).to_not be_success
+        end
       end
     end
   end
