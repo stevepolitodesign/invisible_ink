@@ -15,6 +15,8 @@ when "read"
     puts "ERROR: FILE_PATH argument is required"
     exit 1
   end
+when "setup"
+  exit 0
 else
   puts "ERROR: Unknown command #{command}"
   exit 1

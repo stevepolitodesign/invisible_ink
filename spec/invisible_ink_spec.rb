@@ -48,5 +48,14 @@ RSpec.describe InvisibleInk do
         end
       end
     end
+
+    describe "setup command" do
+      it "exits with a 0 status code" do
+        system_output = invoke_executable("setup")
+
+        expect(system_output).to be_truthy
+        expect($?).to be_success
+      end
+    end
   end
 end
