@@ -6,8 +6,13 @@ RSpec.describe InvisibleInk do
   end
 
   describe "invisible_ink executable" do
+    before do
+      backup_file(".gitignore")
+    end
+
     after do
-      File.delete("invisible_ink.key") if File.exist?("invisible_ink.key")
+      delete_file("invisible_ink.key")
+      restore_file(".gitignore")
     end
 
     it "requires a command" do
