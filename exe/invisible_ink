@@ -21,6 +21,12 @@ when "setup"
     puts "ERROR: invisible_ink.key already exists"
     exit 1
   else
+    ignore_key = if File.exist?(".gitignore") && !File.read(".gitignore").empty?
+      "\ninvisible_ink.key"
+    else
+      "invisible_ink.key"
+    end
+    File.open(".gitignore", "a") { |file| file.puts(ignore_key) }
     key = SecureRandom.hex(16)
     File.write("invisible_ink.key", key)
   end
