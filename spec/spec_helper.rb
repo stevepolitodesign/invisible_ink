@@ -1,10 +1,23 @@
 # frozen_string_literal: true
 
 require "invisible_ink"
+require "fileutils"
 
 module InvisibleInkHelpers
   def invoke_executable(command, file: nil)
     system("exe/invisible_ink #{command} #{file}")
+  end
+
+  def backup_file(file)
+    FileUtils.mv(file, "#{file}.bak")
+  end
+
+  def delete_file(file)
+    File.delete(file) if File.exist?(file)
+  end
+
+  def restore_file(file)
+    FileUtils.mv("#{file}.bak", file)
   end
 end
 
