@@ -13,6 +13,13 @@ RSpec.describe InvisibleInk do
       expect($?).to_not be_success
     end
 
+    it "requires a valid command" do
+      system_output = invoke_executable("invalid_command")
+
+      expect(system_output).to be_falsey
+      expect($?).to_not be_success
+    end
+
     describe "write command" do
       it "exits with a 0 status code" do
         system_output = invoke_executable("write", file: "file.txt")
