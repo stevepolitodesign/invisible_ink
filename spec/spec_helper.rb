@@ -3,8 +3,8 @@
 require "invisible_ink"
 
 module InvisibleInkHelpers
-  def invoke_executable
-    system("exe/invisible_ink")
+  def invoke_executable(command, file: nil)
+    system("exe/invisible_ink #{command} #{file}")
   end
 end
 
