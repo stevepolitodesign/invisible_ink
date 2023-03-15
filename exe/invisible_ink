@@ -9,6 +9,12 @@ when "write"
     puts "ERROR: FILE_PATH argument is required"
     exit 1
   end
+when "read"
+  file_path = ARGV.shift
+  if file_path.nil?
+    puts "ERROR: FILE_PATH argument is required"
+    exit 1
+  end
 else
   puts "ERROR: Unknown command #{command}"
   exit 1
