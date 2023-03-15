@@ -82,6 +82,26 @@ RSpec.describe InvisibleInk do
         expect(key.size).to eq 32
       end
 
+      it "ignores the key file" do
+        File.write(".gitignore", "first_line")
+
+        invoke_executable("setup")
+
+        gitignore = File.read(".gitignore")
+        expect(gitignore).to eq "first_line\ninvisible_ink.key\n"
+      end
+
+      context "when there is no .gitignore file" do
+        it "ignores the key file" do
+          expect(File.exist?(".gitignore")).to be false
+
+          invoke_executable("setup")
+
+          gitignore = File.read(".gitignore")
+          expect(gitignore).to eq "invisible_ink.key\n"
+        end
+      end
+
       context "when the key exists" do
         it "does not override the key" do
           File.write("invisible_ink.key", "original")
