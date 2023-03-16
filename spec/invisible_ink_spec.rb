@@ -11,7 +11,8 @@ RSpec.describe InvisibleInk do
     end
 
     after do
-      delete_file("invisible_ink.key")
+      delete_key
+      delete_file("file.txt")
       restore_file(".gitignore")
     end
 
@@ -49,10 +50,18 @@ RSpec.describe InvisibleInk do
 
     describe "read command" do
       it "exits with a 0 status code" do
+        create_encrypted_file("file.txt", content: "content")
         system_output = invoke_executable("read", file: "file.txt")
 
         expect(system_output).to be_truthy
         expect($?).to be_success
+      end
+
+      it "returns the decrypted contents of the file" do
+        create_encrypted_file("file.txt", content: "content")
+
+        output = `exe/invisible_ink read file.txt`
+        expect(output).to eq "content\n"
       end
 
       context "when a file is not passed" do

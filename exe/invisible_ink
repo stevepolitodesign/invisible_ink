@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require "securerandom"
+require_relative "../lib/invisible_ink"
 
 command = ARGV.shift
 
@@ -16,6 +16,13 @@ when "read"
     puts "ERROR: FILE_PATH argument is required"
     exit 1
   end
+  encrypted_file = ActiveSupport::EncryptedFile.new(
+    content_path: file_path,
+    key_path: "invisible_ink.key",
+    env_key: "",
+    raise_if_missing_key: true
+  )
+  puts encrypted_file.read
 when "setup"
   if File.exist?("invisible_ink.key")
     puts "ERROR: invisible_ink.key already exists"
