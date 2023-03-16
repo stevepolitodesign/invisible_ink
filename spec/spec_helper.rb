@@ -8,6 +8,21 @@ module InvisibleInkHelpers
     system("exe/invisible_ink #{command} #{file}")
   end
 
+  def invoke_write_command(file, content, editor:)
+    switch_env("CONTENT", content) do
+      switch_env("EDITOR", editor) do
+        invoke_executable("write", file: file)
+      end
+    end
+  end
+
+  def switch_env(key, value)
+    old, ENV[key] = ENV[key], value
+    yield
+  ensure
+    ENV[key] = old
+  end
+
   def create_key
     key = ActiveSupport::EncryptedFile.generate_key
 
@@ -44,6 +59,10 @@ module InvisibleInkHelpers
 
   def restore_file(file)
     FileUtils.mv("#{file}.bak", file)
+  end
+
+  def read_file(file)
+    File.read(file)
   end
 end
 

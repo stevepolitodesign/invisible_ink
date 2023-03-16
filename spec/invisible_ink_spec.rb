@@ -32,10 +32,89 @@ RSpec.describe InvisibleInk do
 
     describe "write command" do
       it "exits with a 0 status code" do
-        system_output = invoke_executable("write", file: "file.txt")
+        create_key
 
-        expect(system_output).to be_truthy
-        expect($?).to be_success
+        switch_env("EDITOR", "cat") do
+          system_output = invoke_executable("write", file: "file.txt")
+
+          expect(system_output).to be_truthy
+          expect($?).to be_success
+        end
+      end
+
+      it "creates an encrypted file" do
+        create_key
+
+        invoke_write_command("file.txt", "expected content", editor: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"))
+
+        encrypted_file = ActiveSupport::EncryptedFile.new(
+          content_path: "file.txt",
+          key_path: "invisible_ink.key",
+          env_key: "",
+          raise_if_missing_key: true
+        )
+        expect(encrypted_file.read).to eq "expected content"
+      end
+
+      context "when the message is interrupted" do
+        it "does not save the changes" do
+          create_encrypted_file("file.txt", content: "existing content")
+
+          invoke_write_command("file.txt", "new content", editor: %(ruby -e "Process.kill 'INT', Process.ppid"))
+
+          encrypted_file = ActiveSupport::EncryptedFile.new(
+            content_path: "file.txt",
+            key_path: "invisible_ink.key",
+            env_key: "",
+            raise_if_missing_key: true
+          )
+          expect(encrypted_file.read).to eq "existing content"
+        end
+      end
+
+      context "when there is no system editor" do
+        it "exits with a 1 status code" do
+          switch_env("EDITOR", "") do
+            create_key
+
+            system_output = invoke_executable("write", file: "file.txt")
+
+            expect(system_output).to be_falsey
+            expect($?).to_not be_success
+          end
+        end
+      end
+
+      context "when no content is added" do
+        it "creates an empty file" do
+          create_key
+
+          invoke_write_command("file.txt", nil, editor: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"))
+
+          encrypted_file = ActiveSupport::EncryptedFile.new(
+            content_path: "file.txt",
+            key_path: "invisible_ink.key",
+            env_key: "",
+            raise_if_missing_key: true
+          )
+          expect(encrypted_file.read).to be_empty
+        end
+      end
+
+      context "when there is an existing file" do
+        it "does not wipe the file clean before opening the editor" do
+          create_encrypted_file("file.txt", content: "existing content")
+
+          invoke_write_command("file.txt", "existing content", editor: "cat")
+
+          encrypted_file = ActiveSupport::EncryptedFile.new(
+            content_path: "file.txt",
+            key_path: "invisible_ink.key",
+            env_key: "",
+            raise_if_missing_key: true
+          )
+          expect(encrypted_file.read).to_not be_empty
+        end
       end
 
       context "when a file is not passed" do

@@ -10,6 +10,27 @@ when "write"
     puts "ERROR: FILE_PATH argument is required"
     exit 1
   end
+  if ENV["EDITOR"].to_s.empty?
+    puts "No $EDITOR to open file in. Assign one like this:"
+    puts ""
+    puts %(EDITOR="mate --wait" exe/invisible_ink write #{file_path})
+    puts ""
+    puts "For editors that fork and exit immediately, it's important to pass a wait flag;"
+    puts "otherwise, the file will be saved immediately with no chance to edit."
+    exit 1
+  end
+  encrypted_file = ActiveSupport::EncryptedFile.new(
+    content_path: file_path,
+    key_path: "invisible_ink.key",
+    env_key: "",
+    raise_if_missing_key: true
+  )
+  encrypted_file.write(nil) unless File.exist?(file_path)
+  encrypted_file.change do |tmp_path|
+    system(*Shellwords.split(ENV["EDITOR"]), tmp_path.to_s)
+  rescue Interrupt
+    puts "File not saved"
+  end
 when "read"
   file_path = ARGV.shift
   if file_path.nil?
