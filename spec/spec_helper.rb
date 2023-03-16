@@ -8,6 +8,32 @@ module InvisibleInkHelpers
     system("exe/invisible_ink #{command} #{file}")
   end
 
+  def create_key
+    key = ActiveSupport::EncryptedFile.generate_key
+
+    create_file("invisible_ink.key", content: key) unless File.exist?("invisible_ink.key")
+  end
+
+  def delete_key
+    delete_file("invisible_ink.key")
+  end
+
+  def create_file(file, content: "")
+    File.write(file, content)
+  end
+
+  def create_encrypted_file(file, content: "")
+    create_key
+    encrypted_file = ActiveSupport::EncryptedFile.new(
+      content_path: file,
+      key_path: "invisible_ink.key",
+      env_key: "",
+      raise_if_missing_key: true
+    )
+
+    encrypted_file.write(content)
+  end
+
   def backup_file(file)
     FileUtils.mv(file, "#{file}.bak")
   end
