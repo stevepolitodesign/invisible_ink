@@ -35,7 +35,7 @@ RSpec.describe InvisibleInk do
         create_key
 
         switch_env("EDITOR", "cat") do
-          system_output = invoke_executable("write", file: "file.txt")
+          system_output = invoke_executable("--write", file: "file.txt")
 
           expect(system_output).to be_truthy
           expect($?).to be_success
@@ -59,7 +59,7 @@ RSpec.describe InvisibleInk do
       context "when the invisible_ink.key is missing" do
         it "exits with a 1 status code" do
           switch_env("INVISIBLE_INK_KEY", "") do
-            output = `exe/invisible_ink write "file.txt"`
+            output = `exe/invisible_ink --write "file.txt"`
 
             expect($?).to_not be_success
             expect(output).to match(/INVISIBLE_INK_KEY/)
@@ -163,7 +163,7 @@ RSpec.describe InvisibleInk do
     describe "read command" do
       it "exits with a 0 status code" do
         create_encrypted_file("file.txt", content: "content")
-        system_output = invoke_executable("read", file: "file.txt")
+        system_output = invoke_executable("--read", file: "file.txt")
 
         expect(system_output).to be_truthy
         expect($?).to be_success
@@ -172,7 +172,7 @@ RSpec.describe InvisibleInk do
       it "returns the decrypted contents of the file" do
         create_encrypted_file("file.txt", content: "content")
 
-        output = `exe/invisible_ink read file.txt`
+        output = `exe/invisible_ink --read file.txt`
         expect(output).to eq "content\n"
       end
 
@@ -181,7 +181,7 @@ RSpec.describe InvisibleInk do
           switch_env("INVISIBLE_INK_KEY", "") do
             create_file("file.txt", content: "content")
 
-            output = `exe/invisible_ink read "file.txt"`
+            output = `exe/invisible_ink --read "file.txt"`
 
             expect($?).to_not be_success
             expect(output).to match(/INVISIBLE_INK_KEY/)
@@ -198,7 +198,7 @@ RSpec.describe InvisibleInk do
             switch_env("INVISIBLE_INK_KEY", key) do
               create_encrypted_file("file.txt", content: "content", env_key: "INVISIBLE_INK_KEY")
 
-              output = `exe/invisible_ink read file.txt`
+              output = `exe/invisible_ink --read file.txt`
               expect(output).to eq "content\n"
             end
           end
@@ -217,7 +217,7 @@ RSpec.describe InvisibleInk do
 
     describe "setup command" do
       it "exits with a 0 status code" do
-        system_output = invoke_executable("setup")
+        system_output = invoke_executable("--setup")
 
         expect(system_output).to be_truthy
         expect($?).to be_success
@@ -226,7 +226,7 @@ RSpec.describe InvisibleInk do
       it "creates a key with 32 characters" do
         expect(File.exist?("invisible_ink.key")).to be false
 
-        invoke_executable("setup")
+        invoke_executable("--setup")
 
         key = File.open("invisible_ink.key")
         expect(key.size).to eq 32
@@ -235,7 +235,7 @@ RSpec.describe InvisibleInk do
       it "ignores the key file" do
         File.write(".gitignore", "first_line")
 
-        invoke_executable("setup")
+        invoke_executable("--setup")
 
         gitignore = File.read(".gitignore")
         expect(gitignore).to eq "first_line\ninvisible_ink.key\n"
@@ -245,7 +245,7 @@ RSpec.describe InvisibleInk do
         it "ignores the key file" do
           expect(File.exist?(".gitignore")).to be false
 
-          invoke_executable("setup")
+          invoke_executable("--setup")
 
           gitignore = File.read(".gitignore")
           expect(gitignore).to eq "invisible_ink.key\n"

@@ -11,7 +11,7 @@ module InvisibleInkHelpers
   def invoke_write_command(file, content, editor:)
     switch_env("CONTENT", content) do
       switch_env("EDITOR", editor) do
-        invoke_executable("write", file: file)
+        invoke_executable("--write", file: file)
       end
     end
   end
