@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    invisible_ink (0.1.0)
+    invisible_ink (0.2.0)
       activesupport (~> 7.0)
 
 GEM
