@@ -17,17 +17,26 @@ RSpec.describe InvisibleInk do
     end
 
     it "requires a command" do
-      system_output = invoke_executable(nil)
+      output = `exe/invisible_ink`
 
-      expect(system_output).to be_falsey
+      expect(output).to match(/invalid command/i)
       expect($?).to_not be_success
     end
 
     it "requires a valid command" do
-      system_output = invoke_executable("invalid_command")
+      output = `exe/invisible_ink invalid_command`
 
-      expect(system_output).to be_falsey
+      expect(output).to match(/invalid command/i)
       expect($?).to_not be_success
+    end
+
+    describe "help command" do
+      it "exits with a 0 status code" do
+        system_output = invoke_executable("--help")
+
+        expect(system_output).to be_truthy
+        expect($?).to be_success
+      end
     end
 
     describe "write command" do
