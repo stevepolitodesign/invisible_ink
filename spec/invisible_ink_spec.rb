@@ -56,6 +56,39 @@ RSpec.describe InvisibleInk do
         expect(encrypted_file.read).to eq "expected content"
       end
 
+      context "when the invisible_ink.key is missing" do
+        it "exits with a 1 status code" do
+          switch_env("INVISIBLE_INK_KEY", "") do
+            output = `exe/invisible_ink write "file.txt"`
+
+            expect($?).to_not be_success
+            expect(output).to match(/INVISIBLE_INK_KEY/)
+            expect(output).to match(/invisible_ink\.key/)
+            expect(output).to match(/missin/i)
+            expect(output).to match(/invisible_ink setup/)
+          end
+        end
+
+        context "but the environment variable is set" do
+          it "creates an encrypted file" do
+            key = ActiveSupport::EncryptedFile.generate_key
+
+            switch_env("INVISIBLE_INK_KEY", key) do
+              encrypted_file = ActiveSupport::EncryptedFile.new(
+                content_path: "file.txt",
+                key_path: "",
+                env_key: "INVISIBLE_INK_KEY",
+                raise_if_missing_key: true
+              )
+
+              invoke_write_command("file.txt", "expected content", editor: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"))
+
+              expect(encrypted_file.read).to eq "expected content"
+            end
+          end
+        end
+      end
+
       context "when the message is interrupted" do
         it "does not save the changes" do
           create_encrypted_file("file.txt", content: "existing content")
@@ -141,6 +174,35 @@ RSpec.describe InvisibleInk do
 
         output = `exe/invisible_ink read file.txt`
         expect(output).to eq "content\n"
+      end
+
+      context "when the invisible_ink.key is missing" do
+        it "exits with a 1 status code" do
+          switch_env("INVISIBLE_INK_KEY", "") do
+            create_file("file.txt", content: "content")
+
+            output = `exe/invisible_ink read "file.txt"`
+
+            expect($?).to_not be_success
+            expect(output).to match(/INVISIBLE_INK_KEY/)
+            expect(output).to match(/invisible_ink\.key/)
+            expect(output).to match(/missin/i)
+            expect(output).to match(/invisible_ink setup/)
+          end
+        end
+
+        context "but the environment variable is set" do
+          it "returns the decrypted contents of the file" do
+            key = ActiveSupport::EncryptedFile.generate_key
+
+            switch_env("INVISIBLE_INK_KEY", key) do
+              create_encrypted_file("file.txt", content: "content", env_key: "INVISIBLE_INK_KEY")
+
+              output = `exe/invisible_ink read file.txt`
+              expect(output).to eq "content\n"
+            end
+          end
+        end
       end
 
       context "when a file is not passed" do

@@ -37,12 +37,13 @@ module InvisibleInkHelpers
     File.write(file, content)
   end
 
-  def create_encrypted_file(file, content: "")
-    create_key
+  def create_encrypted_file(file, content: "", env_key: "")
+    create_key unless env_key.present?
+
     encrypted_file = ActiveSupport::EncryptedFile.new(
       content_path: file,
       key_path: "invisible_ink.key",
-      env_key: "",
+      env_key: env_key,
       raise_if_missing_key: true
     )
 
