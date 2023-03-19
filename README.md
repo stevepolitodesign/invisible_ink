@@ -36,6 +36,7 @@ Usage: invisible_ink COMMAND [options]
     -r, --read FILE                  Decrypt and display the content of an encrypted file
     -s, --setup                      Generate an encryption key, save it to a file, and add it to .gitignore
     -h, --help                       Display help message
+    -v, --version                    Display Gem version
 ```
 
 ## 🔨 Development

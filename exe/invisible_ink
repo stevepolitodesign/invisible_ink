@@ -26,6 +26,11 @@ begin
       puts opts
       exit
     end
+
+    opts.on("-v", "--version", "Display Gem version") do
+      puts InvisibleInk::VERSION
+      exit
+    end
   end.parse!
 rescue OptionParser::MissingArgument => e
   puts "ERROR: #{e.message}. The #{e.args.first} command requires a file argument."
