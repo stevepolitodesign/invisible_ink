@@ -19,17 +19,25 @@ when "write"
     puts "otherwise, the file will be saved immediately with no chance to edit."
     exit 1
   end
-  encrypted_file = ActiveSupport::EncryptedFile.new(
-    content_path: file_path,
-    key_path: "invisible_ink.key",
-    env_key: "",
-    raise_if_missing_key: true
-  )
-  encrypted_file.write(nil) unless File.exist?(file_path)
-  encrypted_file.change do |tmp_path|
-    system(*Shellwords.split(ENV["EDITOR"]), tmp_path.to_s)
-  rescue Interrupt
-    puts "File not saved"
+  begin
+    encrypted_file = ActiveSupport::EncryptedFile.new(
+      content_path: file_path,
+      key_path: "invisible_ink.key",
+      env_key: "INVISIBLE_INK_KEY",
+      raise_if_missing_key: true
+    )
+    encrypted_file.write(nil) unless File.exist?(file_path)
+    encrypted_file.change do |tmp_path|
+      system(*Shellwords.split(ENV["EDITOR"]), tmp_path.to_s)
+    rescue Interrupt
+      puts "File not saved"
+    end
+  rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+    puts ""
+    puts "ERROR: #{error}"
+    puts ""
+    puts "Did you run 'invisible_ink setup'?"
+    exit 1
   end
 when "read"
   file_path = ARGV.shift
@@ -37,13 +45,21 @@ when "read"
     puts "ERROR: FILE_PATH argument is required"
     exit 1
   end
-  encrypted_file = ActiveSupport::EncryptedFile.new(
-    content_path: file_path,
-    key_path: "invisible_ink.key",
-    env_key: "",
-    raise_if_missing_key: true
-  )
-  puts encrypted_file.read
+  begin
+    encrypted_file = ActiveSupport::EncryptedFile.new(
+      content_path: file_path,
+      key_path: "invisible_ink.key",
+      env_key: "INVISIBLE_INK_KEY",
+      raise_if_missing_key: true
+    )
+    puts encrypted_file.read
+  rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+    puts ""
+    puts "ERROR: #{error}"
+    puts ""
+    puts "Did you run 'invisible_ink setup'?"
+    exit 1
+  end
 when "setup"
   if File.exist?("invisible_ink.key")
     puts "ERROR: invisible_ink.key already exists"
