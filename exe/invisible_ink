@@ -1,15 +1,49 @@
 #!/usr/bin/env ruby
 require_relative "../lib/invisible_ink"
+require "optparse"
 
-command = ARGV.shift
+options = {}
 
-case command
-when "write"
-  file_path = ARGV.shift
-  if file_path.nil?
-    puts "ERROR: FILE_PATH argument is required"
-    exit 1
+OptionParser.new do |opts|
+  opts.banner = "Usage: invisible_ink COMMAND [options]"
+
+  opts.on("-w", "--write FILE", String, "Encrypt a file using an encryption key and open it in the specified $EDITOR") do |file|
+    options[:command] = "write"
+    options[:file] = file
   end
+
+  opts.on("-r", "--read FILE", String, "Decrypt and display the content of an encrypted file") do |file|
+    options[:command] = "read"
+    options[:file] = file
+  end
+
+  opts.on("-s", "--setup", "Generate an encryption key, save it to a file, and add it to .gitignore") do
+    options[:command] = "setup"
+  end
+
+  opts.on("-h", "--help", "Display help message") do
+    puts opts
+    exit
+  end
+end.parse!
+
+if options[:command].nil?
+  puts "Invalid command. Run 'invisible_ink --help' for a list of available commands."
+  exit 1
+end
+
+if %w[write read].include?(options[:command]) && options[:file].nil?
+  puts "Error: The --#{options[:command]} command requires a file argument."
+  exit
+end
+
+case options[:command]
+when "write"
+  file_path = options[:file]
+  # if file_path.nil?
+  #   puts "ERROR: FILE_PATH argument is required"
+  #   exit 1
+  # end
   if ENV["EDITOR"].to_s.empty?
     puts "No $EDITOR to open file in. Assign one like this:"
     puts ""
@@ -40,7 +74,7 @@ when "write"
     exit 1
   end
 when "read"
-  file_path = ARGV.shift
+  file_path = options[:file]
   if file_path.nil?
     puts "ERROR: FILE_PATH argument is required"
     exit 1
