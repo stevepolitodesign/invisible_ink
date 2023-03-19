@@ -56,6 +56,15 @@ RSpec.describe InvisibleInk do
         expect(encrypted_file.read).to eq "expected content"
       end
 
+      context "when a file is not passed" do
+        it "exits with a 1 status code" do
+          output = `exe/invisible_ink --write`
+
+          expect($?).to_not be_success
+          expect(output).to match(/--write command requires a file argument/)
+        end
+      end
+
       context "when the invisible_ink.key is missing" do
         it "exits with a 1 status code" do
           switch_env("INVISIBLE_INK_KEY", "") do
@@ -176,6 +185,14 @@ RSpec.describe InvisibleInk do
         expect(output).to eq "content\n"
       end
 
+      context "when a file is not passed" do
+        it "exits with a 1 status code" do
+          output = `exe/invisible_ink --read`
+
+          expect($?).to_not be_success
+          expect(output).to match(/--read command requires a file argument/)
+        end
+      end
       context "when the invisible_ink.key is missing" do
         it "exits with a 1 status code" do
           switch_env("INVISIBLE_INK_KEY", "") do
