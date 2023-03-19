@@ -106,5 +106,7 @@ when "setup"
     File.open(".gitignore", "a") { |file| file.puts(ignore_key) }
     key = ActiveSupport::EncryptedFile.generate_key
     File.write("invisible_ink.key", key)
+    puts ""
+    puts "invisible_ink.key generated"
   end
 end
