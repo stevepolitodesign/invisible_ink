@@ -68,13 +68,15 @@ RSpec.describe InvisibleInk do
       context "when the invisible_ink.key is missing" do
         it "exits with a 1 status code" do
           switch_env("INVISIBLE_INK_KEY", "") do
-            output = `exe/invisible_ink --write "file.txt"`
+            switch_env("EDITOR", "cat") do
+              output = `exe/invisible_ink --write "file.txt"`
 
-            expect($?).to_not be_success
-            expect(output).to match(/INVISIBLE_INK_KEY/)
-            expect(output).to match(/invisible_ink\.key/)
-            expect(output).to match(/missin/i)
-            expect(output).to match(/invisible_ink setup/)
+              expect($?).to_not be_success
+              expect(output).to match(/INVISIBLE_INK_KEY/)
+              expect(output).to match(/invisible_ink\.key/)
+              expect(output).to match(/missing/i)
+              expect(output).to match(/invisible_ink setup/)
+            end
           end
         end
 
