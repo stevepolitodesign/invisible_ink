@@ -4,46 +4,43 @@ require "optparse"
 
 options = {}
 
-OptionParser.new do |opts|
-  opts.banner = "Usage: invisible_ink COMMAND [options]"
+begin
+  OptionParser.new do |opts|
+    opts.banner = "Usage: invisible_ink COMMAND [options]"
 
-  opts.on("-w", "--write FILE", String, "Encrypt a file using an encryption key and open it in the specified $EDITOR") do |file|
-    options[:command] = "write"
-    options[:file] = file
-  end
+    opts.on("-w", "--write FILE", String, "Encrypt a file using an encryption key and open it in the specified $EDITOR") do |file|
+      options[:command] = "write"
+      options[:file] = file
+    end
 
-  opts.on("-r", "--read FILE", String, "Decrypt and display the content of an encrypted file") do |file|
-    options[:command] = "read"
-    options[:file] = file
-  end
+    opts.on("-r", "--read FILE", String, "Decrypt and display the content of an encrypted file") do |file|
+      options[:command] = "read"
+      options[:file] = file
+    end
 
-  opts.on("-s", "--setup", "Generate an encryption key, save it to a file, and add it to .gitignore") do
-    options[:command] = "setup"
-  end
+    opts.on("-s", "--setup", "Generate an encryption key, save it to a file, and add it to .gitignore") do
+      options[:command] = "setup"
+    end
 
-  opts.on("-h", "--help", "Display help message") do
-    puts opts
-    exit
-  end
-end.parse!
+    opts.on("-h", "--help", "Display help message") do
+      puts opts
+      exit
+    end
+  end.parse!
+rescue OptionParser::MissingArgument => e
+  puts "ERROR: #{e.message}. The #{e.args.first} command requires a file argument."
+  puts ""
+  puts "EXAMPLE: invisible_ink #{e.args.first} path/to/file.txt"
+  exit 1
+end
 
 if options[:command].nil?
   puts "Invalid command. Run 'invisible_ink --help' for a list of available commands."
   exit 1
 end
 
-if %w[write read].include?(options[:command]) && options[:file].nil?
-  puts "Error: The --#{options[:command]} command requires a file argument."
-  exit
-end
-
 case options[:command]
 when "write"
-  file_path = options[:file]
-  # if file_path.nil?
-  #   puts "ERROR: FILE_PATH argument is required"
-  #   exit 1
-  # end
   if ENV["EDITOR"].to_s.empty?
     puts "No $EDITOR to open file in. Assign one like this:"
     puts ""
@@ -54,6 +51,7 @@ when "write"
     exit 1
   end
   begin
+    file_path = options[:file]
     encrypted_file = ActiveSupport::EncryptedFile.new(
       content_path: file_path,
       key_path: "invisible_ink.key",
@@ -74,12 +72,8 @@ when "write"
     exit 1
   end
 when "read"
-  file_path = options[:file]
-  if file_path.nil?
-    puts "ERROR: FILE_PATH argument is required"
-    exit 1
-  end
   begin
+    file_path = options[:file]
     encrypted_file = ActiveSupport::EncryptedFile.new(
       content_path: file_path,
       key_path: "invisible_ink.key",
@@ -108,7 +102,4 @@ when "setup"
     key = SecureRandom.hex(16)
     File.write("invisible_ink.key", key)
   end
-else
-  puts "ERROR: Unknown command #{command}"
-  exit 1
 end
