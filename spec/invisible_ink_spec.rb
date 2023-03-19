@@ -284,6 +284,12 @@ RSpec.describe InvisibleInk do
         expect(gitignore).to eq "first_line\ninvisible_ink.key\n"
       end
 
+      it "prints a message to $STDOUT" do
+        output = `exe/invisible_ink --setup`
+
+        expect(output).to match(/invisible_ink.key generated/i)
+      end
+
       context "when there is no .gitignore file" do
         it "ignores the key file" do
           expect(File.exist?(".gitignore")).to be false
