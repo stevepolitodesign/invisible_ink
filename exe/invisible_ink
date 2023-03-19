@@ -99,7 +99,7 @@ when "setup"
       "invisible_ink.key"
     end
     File.open(".gitignore", "a") { |file| file.puts(ignore_key) }
-    key = SecureRandom.hex(16)
+    key = ActiveSupport::EncryptedFile.generate_key
     File.write("invisible_ink.key", key)
   end
 end
