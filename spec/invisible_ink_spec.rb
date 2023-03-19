@@ -39,6 +39,21 @@ RSpec.describe InvisibleInk do
       end
     end
 
+    describe "version command" do
+      it "exits with a 0 status code" do
+        system_output = invoke_executable("--version")
+
+        expect(system_output).to be_truthy
+        expect($?).to be_success
+      end
+
+      it "returns the gem's version" do
+        output = `exe/invisible_ink --version`
+
+        expect(output).to match InvisibleInk::VERSION
+      end
+    end
+
     describe "write command" do
       it "exits with a 0 status code" do
         create_key
