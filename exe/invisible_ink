@@ -41,6 +41,7 @@ end
 
 case options[:command]
 when "write"
+  file_path = options[:file]
   if ENV["EDITOR"].to_s.empty?
     puts "No $EDITOR to open file in. Assign one like this:"
     puts ""
@@ -51,7 +52,6 @@ when "write"
     exit 1
   end
   begin
-    file_path = options[:file]
     encrypted_file = ActiveSupport::EncryptedFile.new(
       content_path: file_path,
       key_path: "invisible_ink.key",

@@ -119,10 +119,10 @@ RSpec.describe InvisibleInk do
           switch_env("EDITOR", "") do
             create_key
 
-            system_output = invoke_executable("write", file: "file.txt")
+            output = `exe/invisible_ink --write file.txt`
 
-            expect(system_output).to be_falsey
             expect($?).to_not be_success
+            expect(output).to match(/file\.txt/)
           end
         end
       end
