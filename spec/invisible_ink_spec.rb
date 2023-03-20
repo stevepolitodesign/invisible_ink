@@ -13,6 +13,7 @@ RSpec.describe InvisibleInk do
     after do
       delete_key
       delete_file("file.txt")
+      delete_directory("some/path")
       restore_file(".gitignore")
     end
 
@@ -78,6 +79,39 @@ RSpec.describe InvisibleInk do
           raise_if_missing_key: true
         )
         expect(encrypted_file.read).to eq "expected content"
+      end
+
+      context "when a path is passed" do
+        it "creates an encrypted file" do
+          create_key
+
+          invoke_write_command("some/path/file.txt", "expected content", editor: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"))
+
+          encrypted_file = ActiveSupport::EncryptedFile.new(
+            content_path: "some/path/file.txt",
+            key_path: "invisible_ink.key",
+            env_key: "",
+            raise_if_missing_key: true
+          )
+          expect(encrypted_file.read).to eq "expected content"
+        end
+
+        context "and the path already exists" do
+          it "creates an encrypted file" do
+            FileUtils.mkdir_p("some/path")
+            create_key
+
+            invoke_write_command("some/path/file.txt", "expected content", editor: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"))
+
+            encrypted_file = ActiveSupport::EncryptedFile.new(
+              content_path: "some/path/file.txt",
+              key_path: "invisible_ink.key",
+              env_key: "",
+              raise_if_missing_key: true
+            )
+            expect(encrypted_file.read).to eq "expected content"
+          end
+        end
       end
 
       context "when a file is not passed" do
@@ -209,6 +243,37 @@ RSpec.describe InvisibleInk do
 
         output = `exe/invisible_ink --read file.txt`
         expect(output).to eq "content\n"
+      end
+
+      context "when a path is passed" do
+        it "creates an encrypted file" do
+          create_encrypted_file("some/path/file.txt", content: "expected content")
+
+          encrypted_file = ActiveSupport::EncryptedFile.new(
+            content_path: "some/path/file.txt",
+            key_path: "invisible_ink.key",
+            env_key: "",
+            raise_if_missing_key: true
+          )
+          expect(encrypted_file.read).to eq "expected content"
+        end
+
+        context "and the path already exists" do
+          it "creates an encrypted file" do
+            FileUtils.mkdir_p("some/path")
+            create_key
+
+            invoke_write_command("some/path/file.txt", "expected content", editor: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"))
+
+            encrypted_file = ActiveSupport::EncryptedFile.new(
+              content_path: "some/path/file.txt",
+              key_path: "invisible_ink.key",
+              env_key: "",
+              raise_if_missing_key: true
+            )
+            expect(encrypted_file.read).to eq "expected content"
+          end
+        end
       end
 
       context "when a file is not passed" do
