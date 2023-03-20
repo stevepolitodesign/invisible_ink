@@ -40,6 +40,9 @@ module InvisibleInkHelpers
   def create_encrypted_file(file, content: "", env_key: "")
     create_key unless env_key.present?
 
+    dir_path = File.dirname(file)
+    FileUtils.mkdir_p(dir_path)
+
     encrypted_file = ActiveSupport::EncryptedFile.new(
       content_path: file,
       key_path: "invisible_ink.key",
@@ -56,6 +59,12 @@ module InvisibleInkHelpers
 
   def delete_file(file)
     File.delete(file) if File.exist?(file)
+  end
+
+  def delete_directory(path)
+    parent_dir = File.dirname(path)
+
+    FileUtils.rm_rf(parent_dir)
   end
 
   def restore_file(file)

@@ -57,6 +57,8 @@ when "write"
     exit 1
   end
   begin
+    dir_path = File.dirname(file_path)
+    FileUtils.mkdir_p(dir_path)
     encrypted_file = ActiveSupport::EncryptedFile.new(
       content_path: file_path,
       key_path: "invisible_ink.key",
