@@ -44,6 +44,21 @@ if options[:command].nil?
   exit 1
 end
 
+def build_encrypted_file(file_path)
+  ActiveSupport::EncryptedFile.new(
+    content_path: file_path,
+    key_path: "invisible_ink.key",
+    env_key: "INVISIBLE_INK_KEY",
+    raise_if_missing_key: true
+  )
+end
+
+def handle_missing_key_error(error)
+  puts "ERROR: #{error}"
+  puts ""
+  puts "Did you run 'invisible_ink setup'?"
+end
+
 case options[:command]
 when "write"
   file_path = options[:file]
@@ -59,40 +74,25 @@ when "write"
   begin
     dir_path = File.dirname(file_path)
     FileUtils.mkdir_p(dir_path)
-    encrypted_file = ActiveSupport::EncryptedFile.new(
-      content_path: file_path,
-      key_path: "invisible_ink.key",
-      env_key: "INVISIBLE_INK_KEY",
-      raise_if_missing_key: true
-    )
+
+    encrypted_file = build_encrypted_file(file_path)
     encrypted_file.write(nil) unless File.exist?(file_path)
+
     encrypted_file.change do |tmp_path|
       system(*Shellwords.split(ENV["EDITOR"]), tmp_path.to_s)
     rescue Interrupt
       puts "File not saved"
     end
   rescue ActiveSupport::EncryptedFile::MissingKeyError => error
-    puts ""
-    puts "ERROR: #{error}"
-    puts ""
-    puts "Did you run 'invisible_ink setup'?"
+    handle_missing_key_error(error)
     exit 1
   end
 when "read"
   begin
-    file_path = options[:file]
-    encrypted_file = ActiveSupport::EncryptedFile.new(
-      content_path: file_path,
-      key_path: "invisible_ink.key",
-      env_key: "INVISIBLE_INK_KEY",
-      raise_if_missing_key: true
-    )
+    encrypted_file = build_encrypted_file(options[:file])
     puts encrypted_file.read
   rescue ActiveSupport::EncryptedFile::MissingKeyError => error
-    puts ""
-    puts "ERROR: #{error}"
-    puts ""
-    puts "Did you run 'invisible_ink setup'?"
+    handle_missing_key_error(error)
     exit 1
   end
 when "setup"
@@ -108,7 +108,6 @@ when "setup"
     File.open(".gitignore", "a") { |file| file.puts(ignore_key) }
     key = ActiveSupport::EncryptedFile.generate_key
     File.write("invisible_ink.key", key)
-    puts ""
     puts "invisible_ink.key generated"
   end
 end
